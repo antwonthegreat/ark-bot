@@ -50,7 +50,7 @@ class PatchNotes {
       //   .end()
       //   .toRegex();
       const regex = SuperExpressive()
-        .allowMultipleMatches.string('<a href="/Xbox_')
+        .allowMultipleMatches.string('<a href="/wiki/Xbox_')
         .capture.oneOrMore.anyOf.range("0", "9")
         .string(".")
         .end()
@@ -58,6 +58,7 @@ class PatchNotes {
         .toRegex();
       // console.log([...html.matchAll(regex)]?.length);
       // console.log([...html.matchAll(regex)]?.[0].length);
+
       this.versions = [...html.matchAll(regex)]
         ?.map(
           (o) =>
@@ -69,21 +70,21 @@ class PatchNotes {
           // ? Number(a.minor.toString()[1]) - Number(b.minor.toString()[1])
           // : Number(a.minor.toString()[0]) - Number(b.minor.toString()[0])
         );
+
       const newestVersion = this.versions[this.versions.length - 1] ?? 0;
-      console.log(newestVersion);
       if (
         !this.newestVersion ||
         newestVersion.major > this.newestVersion.major
       ) {
-        // if (this.newestVersion.major !== 0) {
-        // this.sendMessage(`Latest:\n${newestVersion.print()}`);
-        // } else {
-        // console.log(
-        // `newest version found but not sent (startup) ${newestVersion.print()}`
-        // );
-        // }
+        if (this.newestVersion.major !== 0) {
+        this.sendMessage(`Latest:\n${newestVersion.print()}`);
+        } else {
+        console.log(
+        `newest version found but not sent (startup) ${newestVersion.print()}`
+        );
+        }
         this.newestVersion = newestVersion;
-        //await this._retrieveNewPatchNotes(this.newestVersion);
+        await this._retrieveNewPatchNotes(this.newestVersion);
       }
     } catch (error) {
       console.log(error);
@@ -93,12 +94,13 @@ class PatchNotes {
   public async _retrieveNewPatchNotes(version: Version) {
     if (version.notes?.length) return;
     try {
-      console.log("checking...");
+      console.log("checking for newest notes...");
       const response = await fetch(
-        `https://ark.gamepedia.com/Xbox_${version.major}.${version.minor}`
+        `https://ark.gamepedia.com/wiki/Xbox_${version.major}.${version.minor}`
       );
       const html = await response.text();
       const regex = SuperExpressive()
+        .allowMultipleMatches
         .string("<b>Released</b> - ")
         .capture.oneOrMoreLazy.anyChar.end()
         .oneOrMore.anyOf.newline.string("</p>")
